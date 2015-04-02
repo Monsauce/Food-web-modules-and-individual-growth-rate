@@ -220,8 +220,8 @@ RatioSixSum$Configuration<-c("Control", "Consumer-Resource", "Food chain", "Omni
 #order factors
 RatioSixSum$Configuration<- factor(RatioSixSum$Configuration, levels=c("Control", "Consumer-Resource", "Exploitative Competition", "Food chain", "Omnivory"))
 
-####plot Figure 1a 
-Figure1a<-ggplot(RatioSixSum, aes(x = Configuration, y = mean))+
+####plot Figure 3a 
+Figure3a<-ggplot(RatioSixSum, aes(x = Configuration, y = mean))+
   geom_point()+geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2))+
   theme_bw()+
   ylab("RNA:DNA ratio")+
@@ -254,8 +254,8 @@ RatioTwentyFourSum$Configuration<-c("Control", "Consumer-Resource", "Omnivory","
 #order factors
 RatioTwentyFourSum$Configuration<- factor(RatioTwentyFourSum$Configuration, levels=c("Control", "Consumer-Resource", "Exploitative Competition", "Omnivory"))
 
-####plot Figure 1b 
-Figure1b<-ggplot(RatioTwentyFourSum, aes(x = Configuration, y = mean))+
+####plot Figure 3b 
+Figure3b<-ggplot(RatioTwentyFourSum, aes(x = Configuration, y = mean))+
   geom_point()+geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2))+
   theme_bw()+
   ylab("RNA:DNA ratio")+
