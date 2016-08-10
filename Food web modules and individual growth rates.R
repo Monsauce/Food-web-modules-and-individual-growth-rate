@@ -1,4 +1,4 @@
-#Full code to run all analyses in Granados et al. (2015) RNA:DNA ratios reveal higher consumer growth rates in food webs with omnivory 
+#Full code to run all analyses in Granados et al. (2016) Size and variation in individual growth rates among food web modules
 
 ####packages required 
 library(plyr)
@@ -6,6 +6,7 @@ library(reshape)
 library(RCurl)
 library(ggplot2)
 library(gridExtra)
+library(car)
 
 
 ####load data from GitHub
@@ -88,7 +89,7 @@ FigureS1a<-ggplot(PhytoSixMean, aes(x = Configuration, y = mean2))+
   geom_point()+geom_errorbar(aes(ymin=mean2-se, ymax=mean2+se, width=0.2))+
   theme_bw()+
   ylab("Density (cells/ml)")+
-  xlab("Food web configuration")+scale_y_continuous(limits=c(0,160000))+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  xlab("Treatments")+scale_y_continuous(limits=c(0,160000))+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 #one-way ANOVA for 6-hour phytoplankton data 
 PhytoAnova6<-aov(mean1 ~ ID, PhytoSixTrial)
@@ -117,7 +118,7 @@ FigureS1b<-ggplot(PhytoTwentyFourMean, aes(x = Configuration, y = mean2))+
   geom_point()+geom_errorbar(aes(ymin=mean2-se, ymax=mean2+se, width=0.2))+
   theme_bw()+
   ylab("Density (cells/ml)")+
-  xlab("Configuration")+scale_y_continuous(limits=c(0,170000))+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  xlab("Treatments")+scale_y_continuous(limits=c(0,170000))+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 #one-way ANOVA for 24-hour phytoplankton data 
 PhytoAnova24<-aov(mean1 ~ ID, PhytoTwentyFourTrial)
@@ -163,7 +164,7 @@ FigureS2a<-ggplot(ArtemiaSixSum, aes(x = Configuration, y = mean2))+
   geom_point()+geom_errorbar(aes(ymin=mean2-se, ymax=mean2+se, width=0.2))+
   theme_bw()+
   ylab("Density (ind/L)")+
-  xlab("Configuration")+scale_y_continuous(limits=c(0,225))+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  xlab("Treatments")+scale_y_continuous(limits=c(0,300))+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 
 #one-way ANOVA for 6-hour Artemia data
@@ -198,7 +199,7 @@ FigureS2b<-ggplot(ArtemiaTwentyFourSum, aes(x = Configuration, y = mean2))+
   geom_point()+geom_errorbar(aes(ymin=mean2-se, ymax=mean2+se, width=0.2))+
   theme_bw()+
   ylab("Density (ind/L)")+
-  xlab("Configuration")+scale_y_continuous(limits=c(0,300))+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  xlab("Treatments")+scale_y_continuous(limits=c(0,300))+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 #one-way ANOVA for 24-hour Artemia data
 ArtemiaANOVA24<-aov(mean1 ~ ID, ArtemiaTwentyFourTrial)
@@ -239,11 +240,11 @@ RatioSixSum$Configuration<-c("Control", "Consumer-Resource", "Food chain", "Omni
 RatioSixSum$Configuration<- factor(RatioSixSum$Configuration, levels=c("Control", "Consumer-Resource", "Exploitative Competition", "Food chain", "Omnivory"))
 
 ####plot Figure 3a 
-Figure3a<-ggplot(RatioSixSum, aes(x = Configuration, y = mean2))+
-  geom_point()+geom_errorbar(aes(ymin=mean2-se, ymax=mean2+se, width=0.2))+
+Figure3a<-ggplot(RatioSixSum, aes(x = Configuration, y = mean))+
+  geom_point()+geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2))+
   theme_bw()+
   ylab("RNA:DNA ratio")+
-  xlab("Configuration")+
+  xlab("Treatments")+
   scale_y_continuous(limits=c(0,10))
 
 #one-way ANOVA for 6-hour RNA:DNA ratios
@@ -253,7 +254,6 @@ summary(RatioANOVA6)
 #Tukey HSD to assess differences between configurations
 RatioTukey6<-TukeyHSD(RatioANOVA6, which="ID")
 RatioTukey6Results<-RatioTukey6$ID
-
 
 #24-hour experiments 
 RatioTwentyFour<-Ratios[Ratios$Trial%in%c(1,2,3,7),]
@@ -276,11 +276,11 @@ RatioTwentyFourSum$Configuration<-c("Control", "Consumer-Resource", "Omnivory","
 RatioTwentyFourSum$Configuration<- factor(RatioTwentyFourSum$Configuration, levels=c("Control", "Consumer-Resource", "Exploitative Competition", "Omnivory"))
 
 ####plot Figure 3b 
-Figure3b<-ggplot(RatioTwentyFourSum, aes(x = Configuration, y = mean2))+
-  geom_point()+geom_errorbar(aes(ymin=mean2-se, ymax=mean2+se, width=0.2))+
+Figure3b<-ggplot(RatioTwentyFourSum, aes(x = Configuration, y = mean))+
+  geom_point()+geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2))+
   theme_bw()+
   ylab("RNA:DNA ratio")+
-  xlab("Configuration")+
+  xlab("Treatments")+
   scale_y_continuous(limits=c(0,10))
 
 #one-way ANOVA for 24-hour RNA:DNA ratios
@@ -295,33 +295,44 @@ RatioTukey24Results<-RatioTukey24$ID
 Figure3<-grid.arrange(arrangeGrob(Figure3a, Figure3b, ncol=1, nrow=2))
 
 #calculate variance 
-Ratio6Var<-ddply(.data=RatioSix, .variables=.(ID), .fun= summarise, var = var(Ratio))
+Ratio6Var<-ddply(.data=RatioSix, .variables=.(ID, Trial), .fun= summarise, var1 = var(Ratio))
 
 #convert codes to food web configurations 
-Ratio6Var$Configuration<-c("Control", "Consumer-Resource", "Food chain", "Omnivory", "Exploitative Competition")
+Ratio6Var$Configuration<-rep(c("Control", "Consumer-Resource", "Food chain", "Omnivory", "Exploitative Competition"), each=3)
+
+#remove NA
+Ratio6Var<-na.omit(Ratio6Var)
 
 #order factors
 Ratio6Var$Configuration<- factor(Ratio6Var$Configuration, levels=c("Control", "Consumer-Resource", "Exploitative Competition", "Food chain", "Omnivory"))
 
 #calculate variance
-Ratio24Var<-ddply(.data=RatioTwentyFour, .variables=.(ID), .fun= summarise, var = var(Ratio))
+Ratio24Var<-ddply(.data=RatioTwentyFour, .variables=.(ID, Trial), .fun= summarise, var = var(Ratio))
 
 #convert codes to food web configurations 
-Ratio24Var$Configuration<-c("Control", "Consumer-Resource", "Omnivory","Exploitative Competition")
+Ratio24Var$Configuration<-NA
+Ratio24Var[1:8,4]<-rep(c("Control", "Consumer-Resource"), each=4)
+Ratio24Var[9:10,4]<-rep(c("Omnivory"), each=2)
+Ratio24Var[11:14,4]<-rep(c("Exploitative Competition"), each=4)
 
 #order factors
 Ratio24Var$Configuration<- factor(Ratio24Var$Configuration, levels=c("Control", "Consumer-Resource", "Exploitative Competition", "Omnivory"))
 
+#remove NA
+Ratio24Var<-na.omit(Ratio24Var)
+
+#Bartlett’s test of homogeneity of variance
+Ratio6Var<-Ratio6Var[ ! Ratio6Var$ID %in% c("R"), ] #Remove single omnivory entry 
+bartlett.test(var1 ~ Configuration, data=Ratio6Var)
+
+bartlett.test(var ~ Configuration, data=Ratio24Var)
+
 ####plot Figure 4a
-Figure4a<-ggplot(Ratio6Var, aes(x = Configuration, y = var))+
-  geom_bar(stat = "identity",position="dodge")+ylab("Variance")+
-  scale_y_continuous(limits=c(0,18))+
-  theme_bw()
+Figure4a<-ggplot(Ratio6Var, aes(x = Configuration, y = var1))+
+  geom_boxplot()+ylab("Variance")+xlab("Treatments")+theme_bw()
 
 Figure4b<-ggplot(Ratio24Var, aes(x = Configuration, y = var))+
-  geom_bar(stat = "identity",position="dodge")+xlab("Configuration")+ylab("Variance")+
-  scale_y_continuous(limits=c(0,18))+
-  theme_bw()
+  geom_boxplot()+ylab("Variance")+xlab("Treatments")+theme_bw()
 
 #Stich graphs together 
 Figure4<-grid.arrange(arrangeGrob(Figure4a, Figure4b, ncol=1, nrow=2))
