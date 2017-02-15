@@ -1,4 +1,4 @@
-#Full code to run all analyses in Granados et al. (2016) Size and variation in individual growth rates among food web modules
+#Full code to run all analyses in Granados et al. (2017) Size and variation in individual growth rates among food web modules
 
 ####packages required 
 library(plyr)
@@ -231,7 +231,7 @@ RatioSix$ID<-Mesocosm
 
 #calculate means 
 RatioSixTrial<-ddply(.data=RatioSix, .variables=.(ID, Trial), .fun= summarise, mean1 = mean(Ratio))
-RatioSixSum<-ddply(.data=RatioSixTrial, .variables=.(ID), .fun= summarise, mean2 = mean(mean1), se=sd(mean1)/sqrt(length(mean1)))
+RatioSixSum<-ddply(.data=RatioSixTrial, .variables=.(ID), .fun= summarise, mean2 = mean(mean1), se=sd(mean1)/sqrt(length(mean1)), cv = sd(mean1)/mean(mean1))
 
 #convert codes to food web configurations 
 RatioSixSum$Configuration<-c("Control", "Consumer-Resource", "Food chain", "Omnivory", "Exploitative Competition")
@@ -267,7 +267,7 @@ RatioTwentyFour$ID<-Mesocosm
 
 #calculate mean
 RatioTwentyFourTrial<-ddply(.data=RatioTwentyFour, .variables=.(ID, Trial), .fun= summarise, mean1 = mean(Ratio))
-RatioTwentyFourSum<-ddply(.data=RatioTwentyFourTrial, .variables=.(ID), .fun= summarise, mean2 = mean(mean1), se=sd(mean1)/sqrt(length(mean1)))
+RatioTwentyFourSum<-ddply(.data=RatioTwentyFourTrial, .variables=.(ID), .fun= summarise, mean2 = mean(mean1), se=sd(mean1)/sqrt(length(mean1)), cv = sd(mean1)/mean(mean1))
 
 #convert codes to food web configurations 
 RatioTwentyFourSum$Configuration<-c("Control", "Consumer-Resource", "Omnivory","Exploitative Competition")
@@ -309,6 +309,7 @@ Ratio6Var$Configuration<- factor(Ratio6Var$Configuration, levels=c("Control", "C
 #calculate variance
 Ratio24Var<-ddply(.data=RatioTwentyFour, .variables=.(ID, Trial), .fun= summarise, var = var(Ratio))
 
+
 #convert codes to food web configurations 
 Ratio24Var$Configuration<-NA
 Ratio24Var[1:8,4]<-rep(c("Control", "Consumer-Resource"), each=4)
@@ -336,6 +337,10 @@ Figure4b<-ggplot(Ratio24Var, aes(x = Configuration, y = var))+
 
 #Stich graphs together 
 Figure4<-grid.arrange(arrangeGrob(Figure4a, Figure4b, ncol=1, nrow=2))
+
+#Display CV
+Ratio6CV<-RatioSixSum[,4:5]
+Ratio624CV<-RatioTwentyFourSum[,4:5]
 
 
 
